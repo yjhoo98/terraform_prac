@@ -1,0 +1,74 @@
+########################################
+# Terraform (safe defaults)
+########################################
+
+# Local .terraform directories (plugins/modules cache)
+.terraform/
+**/.terraform/
+
+# State files (can contain secrets)
+*.tfstate
+*.tfstate.*
+terraform.tfstate
+terraform.tfstate.backup
+
+# Terraform plan files (may contain sensitive values)
+*.tfplan
+*.plan
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Override files (local-only config)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CLI config (usually should NOT be committed)
+.terraformrc
+terraform.rc
+
+########################################
+# Variables (often contain secrets)
+########################################
+
+# Default: ignore all tfvars files (safest)
+*.tfvars
+*.tfvars.json
+
+# If you WANT to commit non-secret example vars, use examples like:
+#   example.tfvars
+#   dev.example.tfvars
+# and keep them tracked by negating ignore:
+!*.example.tfvars
+!*.example.tfvars.json
+
+########################################
+# Sensitive local files (common patterns)
+########################################
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Keys / certs
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+
+########################################
+# OS / Editor noise
+########################################
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
