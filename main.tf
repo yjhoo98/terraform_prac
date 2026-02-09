@@ -2,12 +2,16 @@ provider "aws" {
   region = "ap-northeast-2"
 }
 
-resource "aws_instance" "example" {
+resource "aws_instance" "demo" {
   ami           = "ami-0130d8d35bcd2d433"
   instance_type = "t3.micro"
 
   tags = {
-    Name = "ExampleInstance"
+    Name = "TerraformDemo"
+    Type = "Training"
+
   }
 }
+
+
 
