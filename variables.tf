@@ -1,36 +1,50 @@
-# 인스턴스 이름 변수
-variable "instance_name" {
-  description = "EC2 인스턴스 이름"
+# variables.tf
+
+variable "environment" {
+  description = "배포 환경"
   type        = string
-  default     = "TerraformTrainingInstance"
+  default     = "dev"
 }
 
-# 인스턴스 타입 변수
-variable "instance_type" {
-  description = "EC2 인스턴스 타입"
-  type        = string
-  default     = "t3.micro"
+variable "allowed_ips" {
+  description = "허용할 IP CIDR 목록"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
 
-  validation {
-    condition     = can(regex("^t[23]\\.", var.instance_type))
-    error_message = "인스턴스 타입은 t2 또는 t3 계열이어야 합니다."
+variable "office_ips" {
+  description = "사무실 IP 범위"
+  type        = list(string)
+  default     = ["121.171.237.78/32"]
+}
+
+variable "ports" {
+  description = "개방할 포트 목록"
+  type = map(object({
+    protocol  = string
+    from_port = number
+    to_port   = number
+  }))
+
+  default = {
+    ssh = {
+      protocol  = "tcp"
+      from_port = 22
+      to_port   = 22
+    }
+
+    http = {
+      protocol  = "tcp"
+      from_port = 80
+      to_port   = 80
+    }
+
+    https = {
+      protocol  = "tcp"
+      from_port = 443
+      to_port   = 443
+    }
   }
 }
-# AMI ID 변수 (Ubuntu 22.04 LTS)
-variable "ami_id" {
-  description = "Ubuntu 22.04 LTS AMI ID"
-  type        = string
-  default     = "ami-0c9c942bd7bf113a2"  # 서울 리전용
-
-  # 다른 리전용 AMI (참고용)
-  # us-east-1: ami-0c55b159cbfafe1f0
-  # ap-northeast-1: ami-0abcdef1234567890
-}
-
-# SSH 키 페어 변수
-variable "key_name" {
-  description = "기존 EC2 키 페어 이름"
-  type        = string
-  default     = null  # 키 없이 생성
 }
 
