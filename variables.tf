@@ -45,6 +45,30 @@ variable "ports" {
       to_port   = 443
     }
   }
+
 }
+variable "project_name" {
+  description = "Allow traffic from web to app servers"
+  type        = string
+  default     = "server-sg"
+}
+
+variable "ami_id" {
+  description = "EC2에 사용할 AMI ID"
+  type        = string
+  default     = "ami-0c9c942bd7bf113a2" # Ubuntu 22.04
+}
+
+variable "instance_type" {
+  description = "EC2 인스턴스 유형"
+  type        = string
+  default     = "t3.micro"
+}
+
+# outputs.tf에서 var.key_name 쓰고 있으면 필요
+variable "key_name" {
+  description = "EC2 키페어 이름 (pem 파일명)"
+  type        = string
+  default     = "your-key-name"
 }
 
