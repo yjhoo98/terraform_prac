@@ -1,89 +1,63 @@
-terraform {
-  required_version = ">= 1.0.0"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.0"
+# main.tf (또는 ami.tf)
+
+# 지역 변수로 AMI 필터 정의
+locals {
+  ami_filters = {
+    ubuntu = [
+      {
+        name   = "name"
+        values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+      },
+      {
+        name   = "virtualization-type"
+        values = ["hvm"]
+      }
+    ]
+
+    amazon_linux = [
+      {
+        name   = "name"
+        values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+      }
+    ]
+
+    windows = [
+      {
+        name   = "name"
+        values = ["Windows_Server-2019-English-Full-Base-*"]
+      }
+    ]
+  }
+
+  ami_owners = {
+    ubuntu      = ["099720109477"]
+    amazon_linux = ["amazon"]
+    windows     = ["amazon"]
+  }
+}
+
+# 데이터 소스 구성
+data "aws_ami" "selected_os" {
+  most_recent = true
+
+  dynamic "filter" {
+    for_each = local.ami_filters[var.os_type]
+    content {
+      name   = filter.value.name
+      values = filter.value.values
     }
   }
+
+  owners = local.ami_owners[var.os_type]
 }
 
-# AWS Provider 설정
-provider "aws" {
-  # 환경 변수 AWS_DEFAULT_REGION 자동 사용
-  # access_key, secret_key도 환경 변수에서 자동으로 읽어옵니다.
-  
-  default_tags {
-    tags = {
-      ManagedBy   = "Terraform"
-      Course      = "Terraform-3Day"
-      Environment = var.environment
-    }
-  }
-}
-
-# 보안 그룹 (이름 변경: web)
-resource "aws_security_group" "web" {
-  name        = "allow_web_traffic"
-  description = "Allow SSH and HTTP inbound traffic"
-
-  # SSH
-  ingress {
-    description = "SSH from anywhere"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # HTTP (웹 서버용)
-  ingress {
-    description = "HTTP from anywhere"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+resource "aws_instance" "server" {
+  ami           = data.aws_ami.selected_os.id
+  instance_type = "t3.micro"
 
   tags = {
-    Name = "allow_web_traffic"
+    OS       = var.os_type
+    AMI_Name = data.aws_ami.selected_os.name
   }
 }
 
-# EC2 인스턴스 (이름 변경: web, 다중 생성: count)
-resource "aws_instance" "web" {
-  count = var.instance_count # 변수에서 개수 제어
-
-  ami           = var.ami_id
-  instance_type = var.instance_type
-  key_name      = var.key_name
-  
-  vpc_security_group_ids = [aws_security_group.web.id]
-
-  # 태그에 인덱스(순서) 번호 부여
-  tags = {
-    Name = "${var.instance_name}-${count.index + 1}"
-    Type = "Web"
-  }
-
-  root_block_device {
-    volume_size = 20
-    volume_type = "gp3"
-    delete_on_termination = true
-  }
-
-  # 웹 서버(Nginx) 설치 예시
-  user_data = <<-EOF
-              #!/bin/bash
-              apt-get update
-              apt-get install -y nginx
-              echo "Web Server ${count.index + 1}" > /var/www/html/index.html
-              EOF
-}
